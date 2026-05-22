@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>과학교사 소개 페이지</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-start:   #2d0a4e;
+    --bg-mid:     #5b1f8a;
+    --bg-end:     #8b3db8;
+    --accent1:    #c084fc;
+    --accent2:    #e879f9;
+    --accent3:    #f0abfc;
+    --card-bg:    rgba(255,255,255,0.12);
+    --card-border:rgba(192,132,252,0.35);
+    --text-main:  #fdf4ff;
+    --text-sub:   #e9d5ff;
+    --text-muted: #c4b5fd;
+  }
+
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: linear-gradient(145deg, var(--bg-start) 0%, var(--bg-mid) 50%, var(--bg-end) 100%);
+    min-height: 100vh;
+    color: var(--text-main);
+    overflow-x: hidden;
+  }
+
+  /* ── Canvas 별빛 ── */
+  #starCanvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── 배경 노이즈 오버레이 ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(192,132,252,0.22) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 80%, rgba(232,121,249,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 50% at 50% 50%, rgba(139,61,184,0.10) 0%, transparent 70%);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── 레이아웃 ── */
+  .page-wrapper {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 20px 80px;
+    gap: 32px;
+  }
+
+  /* ── 헤더 / 프로필 히어로 ── */
+  .hero {
+    text-align: center;
+    animation: fadeUp 1s ease both;
+  }
+
+  .orbit-wrapper {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    margin: 0 auto 28px;
+  }
+
+  .avatar-circle {
+    position: absolute;
+    inset: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent1), var(--accent2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+      0 0 30px rgba(192,132,252,0.55),
+      0 0 70px rgba(232,121,249,0.25);
+    z-index: 2;
+  }
+
+  .avatar-circle svg {
+    width: 64px;
+    height: 64px;
+    fill: #fff;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+  }
+
+  .orbit-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1.5px solid rgba(192,132,252,0.35);
+    animation: spin linear infinite;
+    top: 50%; left: 50%;
+    transform-origin: center center;
+  }
+  .orbit-ring:nth-child(1) { width:170px; height:170px; margin:-85px 0 0 -85px; animation-duration:12s; }
+  .orbit-ring:nth-child(2) { width:140px; height:140px; margin:-70px 0 0 -70px; animation-duration:9s; animation-direction:reverse; border-color:rgba(232,121,249,0.30); }
+  .orbit-ring:nth-child(3) { width:115px; height:115px; margin:-57.5px 0 0 -57.5px; animation-duration:15s; border-color:rgba(240,171,252,0.25); }
+
+  .orbit-dot {
+    position: absolute;
+    width: 7px; height: 7px;
+    background: var(--accent2);
+    border-radius: 50%;
+    top: -3.5px; left: 50%; margin-left: -3.5px;
+    box-shadow: 0 0 8px var(--accent2);
+  }
+
+  @keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+
+  .hero h1 {
+    font-family: 'Noto Serif KR', serif;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text-main) 30%, var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+  }
+
+  .hero .title-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(192,132,252,0.22);
+    border: 1px solid var(--card-border);
+    border-radius: 40px;
+    padding: 7px 22px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--accent3);
+    letter-spacing: 0.04em;
+    margin-bottom: 20px;
+    backdrop-filter: blur(8px);
+  }
+
+  .hero .title-badge span.dot {
+    width: 7px; height: 7px;
+    background: var(--accent2);
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 8px var(--accent2);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(0.7);} }
+
+  /* ── 소개 카드 ── */
+  .intro-card {
+    max-width: 640px;
+    width: 100%;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    padding: 36px 40px;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow:
+      0 8px 40px rgba(45,10,78,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.12);
+    animation: fadeUp 1s 0.2s ease both;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .intro-card::before {
+    content:'';
+    position:absolute;
+    top:-60px; right:-60px;
+    width:180px; height:180px;
+    background: radial-gradient(circle, rgba(232,121,249,0.18) 0%, transparent 70%);
+    pointer-events:none;
+  }
+
+  .intro-card p {
+    font-family: 'Noto Serif KR', serif;
+    font-size: clamp(1rem, 2.5vw, 1.22rem);
+    line-height: 1.9;
+    color: var(--text-sub);
+    font-weight: 300;
+  }
+
+  .intro-card p strong {
+    color: var(--accent3);
+    font-weight: 600;
+  }
+
+  /* ── 정보 카드 그리드 ── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    max-width: 720px;
+    width: 100%;
+    animation: fadeUp 1s 0.4s ease both;
+  }
+
+  .info-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 28px 24px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 4px 24px rgba(45,10,78,0.28);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    text-align: center;
+  }
+
+  .info-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 40px rgba(192,132,252,0.30);
+    border-color: rgba(192,132,252,0.60);
+  }
+
+  .info-card .icon-wrap {
+    width: 52px; height: 52px;
+    background: linear-gradient(135deg, rgba(192,132,252,0.28), rgba(232,121,249,0.18));
+    border: 1px solid rgba(192,132,252,0.40);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 14px;
+  }
+
+  .info-card .icon-wrap svg {
+    width: 26px; height: 26px;
+    stroke: var(--accent3);
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .info-card h3 {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .info-card p {
+    font-size: 0.97rem;
+    font-weight: 600;
+    color: var(--text-main);
+    line-height: 1.5;
+  }
+
+  /* ── 관심 분야 태그 ── */
+  .tags-section {
+    max-width: 640px;
+    width: 100%;
+    text-align: center;
+    animation: fadeUp 1s 0.6s ease both;
+  }
+
+  .tags-section h2 {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .tags-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .tag {
+    background: rgba(192,132,252,0.18);
+    border: 1px solid rgba(192,132,252,0.38);
+    color: var(--accent3);
+    border-radius: 30px;
+    padding: 8px 18px;
+    font-size: 0.87rem;
+    font-weight: 500;
+    cursor: default;
+    transition: background 0.25s, border-color 0.25s, transform 0.25s;
+    backdrop-filter: blur(8px);
+  }
+
+  .tag:hover {
+    background: rgba(232,121,249,0.28);
+    border-color: var(--accent2);
+    transform: scale(1.05);
+  }
+
+  /* ── 음악 플레이어 ── */
+  .music-player {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 50px;
+    padding: 14px 28px;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 4px 24px rgba(45,10,78,0.28);
+    animation: fadeUp 1s 0.8s ease both;
+  }
+
+  #playBtn {
+    width: 46px; height: 46px;
+    background: linear-gradient(135deg, var(--accent1), var(--accent2));
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 18px rgba(232,121,249,0.45);
+    transition: transform 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
+  }
+
+  #playBtn:hover { transform: scale(1.1); box-shadow: 0 0 28px rgba(232,121,249,0.65); }
+
+  #playBtn svg { width:18px; height:18px; fill:#fff; }
+
+  .player-info { display:flex; flex-direction:column; gap:4px; }
+
+  .player-label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .player-name {
+    font-size: 0.93rem;
+    font-weight: 600;
+    color: var(--text-sub);
+  }
+
+  .wave-bars {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 24px;
+  }
+
+  .wave-bars span {
+    display: block;
+    width: 3px;
+    background: var(--accent1);
+    border-radius: 2px;
+    height: 6px;
+    transition: height 0.2s;
+  }
+
+  .wave-bars.playing span:nth-child(1) { animation: wave 0.8s 0.0s ease-in-out infinite alternate; }
+  .wave-bars.playing span:nth-child(2) { animation: wave 0.8s 0.1s ease-in-out infinite alternate; }
+  .wave-bars.playing span:nth-child(3) { animation: wave 0.8s 0.2s ease-in-out infinite alternate; }
+  .wave-bars.playing span:nth-child(4) { animation: wave 0.8s 0.3s ease-in-out infinite alternate; }
+  .wave-bars.playing span:nth-child(5) { animation: wave 0.8s 0.15s ease-in-out infinite alternate; }
+
+  @keyframes wave { from { height:4px; } to { height:22px; } }
+
+  /* ── 푸터 ── */
+  footer {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    opacity: 0.6;
+    animation: fadeUp 1s 1s ease both;
+  }
+
+  /* ── 공통 애니메이션 ── */
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(30px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  /* ── 반응형 ── */
+  @media (max-width: 500px) {
+    .intro-card { padding: 28px 22px; }
+    .music-player { padding: 12px 20px; gap:12px; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="starCanvas"></canvas>
+
+<div class="page-wrapper">
+
+  <!-- 히어로 -->
+  <div class="hero">
+    <div class="orbit-wrapper">
+      <div class="orbit-ring"><div class="orbit-dot"></div></div>
+      <div class="orbit-ring"><div class="orbit-dot"></div></div>
+      <div class="orbit-ring"><div class="orbit-dot"></div></div>
+      <div class="avatar-circle">
+        <!-- 사람 아이콘 SVG -->
+        <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="22" r="12"/>
+          <path d="M8 54c0-13.255 10.745-24 24-24s24 10.745 24 24"/>
+        </svg>
+      </div>
+    </div>
+    <h1>중학교 과학교사 &amp; 수석교사</h1>
+    <div class="title-badge">
+      <span class="dot"></span>
+      수업과 업무를 더 쉽고 즐겁게
+    </div>
+  </div>
+
+  <!-- 소개 카드 -->
+  <div class="intro-card">
+    <p>
+      <strong>중학교 과학교사이자 수석교사</strong>로,<br>
+      수업과 업무를 더 쉽고 즐겁게 만드는<br>
+      방법을 연구합니다.
+    </p>
+  </div>
+
+  <!-- 정보 카드 그리드 -->
+  <div class="cards-grid">
+    <div class="info-card">
+      <div class="icon-wrap">
+        <!-- 비커/플라스크 아이콘 -->
+        <svg viewBox="0 0 24 24"><path d="M9 3h6m-3 0v6l4.5 9H7.5L12 9"/><path d="M6.5 15.5h11"/></svg>
+      </div>
+      <h3>담당 과목</h3>
+      <p>중학교 과학</p>
+    </div>
+    <div class="info-card">
+      <div class="icon-wrap">
+        <!-- 별 아이콘 -->
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <h3>직책</h3>
+      <p>수석교사</p>
+    </div>
+    <div class="info-card">
+      <div class="icon-wrap">
+        <!-- 전구 아이콘 -->
+        <svg viewBox="0 0 24 24"><path d="M9 21h6m-3-3V12m0 0a5 5 0 100-10 5 5 0 000 10z"/></svg>
+      </div>
+      <h3>관심사</h3>
+      <p>에듀테크 &amp; 수업 혁신</p>
+    </div>
+  </div>
+
+  <!-- 태그 -->
+  <div class="tags-section">
+    <h2>Research &amp; Interest</h2>
+    <div class="tags-wrap">
+      <span class="tag">과학 수업 설계</span>
+      <span class="tag">에듀테크 활용</span>
+      <span class="tag">수업 자동화</span>
+      <span class="tag">AI 교육</span>
+      <span class="tag">수석교사 멘토링</span>
+      <span class="tag">업무 효율화</span>
+      <span class="tag">STEM 교육</span>
+    </div>
+  </div>
+
+  <!-- 음악 플레이어 -->
+  <div class="music-player">
+    <button id="playBtn" aria-label="음악 재생/일시정지">
+      <svg id="playIcon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    </button>
+    <div class="player-info">
+      <span class="player-label">Background Music</span>
+      <span class="player-name">bg.mp3</span>
+    </div>
+    <div class="wave-bars" id="waveBars">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <footer>Made with GitHub Pages</footer>
+</div>
+
+<!-- 오디오 -->
+<audio id="bgMusic" src="bg.mp3" loop></audio>
+
+<script>
+// ── 별빛 파티클 Canvas ──
+const canvas = document.getElementById('starCanvas');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+const STAR_COUNT = 200;
+const SPARKLE_COUNT = 35;
+
+// 별 색상: 중간 톤 바이올렛 계열
+const starColors = [
+  'rgba(255,255,255,',
+  'rgba(216,180,254,',
+  'rgba(192,132,252,',
+  'rgba(232,121,249,',
+  'rgba(240,171,252,'
+];
+
+const stars = Array.from({ length: STAR_COUNT }, () => ({
+  x: Math.random() * window.innerWidth,
+  y: Math.random() * window.innerHeight,
+  r: Math.random() * 1.6 + 0.3,
+  alpha: Math.random() * 0.7 + 0.2,
+  speed: Math.random() * 0.3 + 0.05,
+  twinkleSpeed: Math.random() * 0.02 + 0.005,
+  twinkleOffset: Math.random() * Math.PI * 2,
+  color: starColors[Math.floor(Math.random() * starColors.length)],
+  dx: (Math.random() - 0.5) * 0.25,
+  dy: (Math.random() - 0.5) * 0.15 - 0.08,
+}));
+
+const sparkles = Array.from({ length: SPARKLE_COUNT }, () => ({
+  x: Math.random() * window.innerWidth,
+  y: Math.random() * window.innerHeight,
+  size: Math.random() * 3.5 + 1.5,
+  alpha: 0,
+  phase: Math.random() * Math.PI * 2,
+  speed: Math.random() * 0.04 + 0.02,
+  color: starColors[Math.floor(Math.random() * starColors.length)],
+}));
+
+let t = 0;
+
+function drawStar(s) {
+  const twinkle = Math.sin(t * s.twinkleSpeed * 60 + s.twinkleOffset) * 0.4 + 0.6;
+  const a = s.alpha * twinkle;
+  ctx.beginPath();
+  ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+  ctx.fillStyle = s.color + a + ')';
+  ctx.fill();
+  // glow
+  if (a > 0.6) {
+    const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 4);
+    g.addColorStop(0, s.color + (a * 0.4) + ')');
+    g.addColorStop(1, s.color + '0)');
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r * 4, 0, Math.PI * 2);
+    ctx.fillStyle = g;
+    ctx.fill();
+  }
+}
+
+function drawSparkle(sp) {
+  sp.alpha = (Math.sin(t * sp.speed * 60 + sp.phase) + 1) / 2;
+  const a = sp.alpha * 0.9;
+  const sz = sp.size;
+  ctx.save();
+  ctx.translate(sp.x, sp.y);
+  ctx.rotate(t * 0.5);
+  ctx.strokeStyle = sp.color + a + ')';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(-sz, 0); ctx.lineTo(sz, 0);
+  ctx.moveTo(0, -sz); ctx.lineTo(0, sz);
+  ctx.moveTo(-sz * 0.6, -sz * 0.6); ctx.lineTo(sz * 0.6, sz * 0.6);
+  ctx.moveTo(sz * 0.6, -sz * 0.6); ctx.lineTo(-sz * 0.6, sz * 0.6);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  t += 0.016;
+
+  stars.forEach(s => {
+    drawStar(s);
+    s.x += s.dx;
+    s.y += s.dy;
+    if (s.x < -10) s.x = canvas.width + 10;
+    if (s.x > canvas.width + 10) s.x = -10;
+    if (s.y < -10) s.y = canvas.height + 10;
+    if (s.y > canvas.height + 10) s.y = -10;
+  });
+
+  sparkles.forEach(sp => drawSparkle(sp));
+
+  requestAnimationFrame(animate);
+}
+animate();
+
+// ── 음악 플레이어 ──
+const audio = document.getElementById('bgMusic');
+const playBtn = document.getElementById('playBtn');
+const playIcon = document.getElementById('playIcon');
+const waveBars = document.getElementById('waveBars');
+
+const pauseSVG = `<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>`;
+const playSVG  = `<polygon points="5 3 19 12 5 21 5 3"/>`;
+
+let playing = false;
+playBtn.addEventListener('click', () => {
+  if (!playing) {
+    audio.play().then(() => {
+      playing = true;
+      playIcon.innerHTML = pauseSVG;
+      waveBars.classList.add('playing');
+    }).catch(() => {});
+  } else {
+    audio.pause();
+    playing = false;
+    playIcon.innerHTML = playSVG;
+    waveBars.classList.remove('playing');
+  }
+});
+</script>
+</body>
+</html>
